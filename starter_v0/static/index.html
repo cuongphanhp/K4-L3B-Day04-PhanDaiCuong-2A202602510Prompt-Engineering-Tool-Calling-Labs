@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="vi" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Northstar IT Helpdesk Copilot | vinAI K4-L3B</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/></svg>"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+            colors: {
+              slate: {
+                750: "#293548",
+                850: "#151e2e",
+                950: "#080c14",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- React & Babel Standalone -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      code,
+      pre,
+      .font-mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.6);
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(51, 65, 85, 0.8);
+        border-radius: 9999px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.8);
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased overflow-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      // --- Lucide SVG Icon Components ---
+      const Icon = ({ path, className = "w-4 h-4", fill = "none" }) => (
+        <svg
+          className={className}
+          viewBox="0 0 24 24"
+          fill={fill}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {path}
+        </svg>
+      );
+
+      const Shield = (props) => (
+        <Icon
+          {...props}
+          path={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />}
+        />
+      );
+      const GitBranch = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <line x1="6" y1="3" x2="6" y2="15" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <path d="M18 9a9 9 0 0 1-9 9" />
+            </>
+          }
+        />
+      );
+      const Cpu = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <rect x="9" y="9" width="6" height="6" />
+              <line x1="9" y1="1" x2="9" y2="4" />
+              <line x1="15" y1="1" x2="15" y2="4" />
+              <line x1="9" y1="20" x2="9" y2="23" />
+              <line x1="15" y1="20" x2="15" y2="23" />
+              <line x1="20" y1="9" x2="23" y2="9" />
+              <line x1="20" y1="14" x2="23" y2="14" />
+              <line x1="1" y1="9" x2="4" y2="9" />
+              <line x1="1" y1="14" x2="4" y2="14" />
+            </>
+          }
+        />
+      );
+      const Wrench = (props) => (
+        <Icon
+          {...props}
+          path={
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          }
+        />
+      );
+      const ChevronDown = (props) => (
+        <Icon {...props} path={<polyline points="6 9 12 15 18 9" />} />
+      );
+      const ChevronRight = (props) => (
+        <Icon {...props} path={<polyline points="9 18 15 12 9 6" />} />
+      );
+      const CheckCircle2 = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </>
+          }
+        />
+      );
+      const AlertCircle = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </>
+          }
+        />
+      );
+      const Clock = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </>
+          }
+        />
+      );
+      const Terminal = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <polyline points="4 17 10 11 4 5" />
+              <line x1="12" y1="19" x2="20" y2="19" />
+            </>
+          }
+        />
+      );
+      const ShieldCheck = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </>
+          }
+        />
+      );
+      const User = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </>
+          }
+        />
+      );
+      const Bot = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <rect x="3" y="11" width="18" height="10" rx="2" />
+              <circle cx="12" cy="5" r="2" />
+              <path d="M12 7v4" />
+              <line x1="8" y1="16" x2="8" y2="16" />
+              <line x1="16" y1="16" x2="16" y2="16" />
+            </>
+          }
+        />
+      );
+      const AlertTriangle = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </>
+          }
+        />
+      );
+      const Layers = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </>
+          }
+        />
+      );
+      const Sliders = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
+            </>
+          }
+        />
+      );
+      const RotateCcw = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </>
+          }
+        />
+      );
+      const Sparkles = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+              <path d="M5 3v4" />
+              <path d="M19 17v4" />
+              <path d="M3 5h4" />
+              <path d="M17 19h4" />
+            </>
+          }
+        />
+      );
+      const Download = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </>
+          }
+        />
+      );
+      const Send = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </>
+          }
+        />
+      );
+      const Menu = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </>
+          }
+        />
+      );
+      const X = (props) => (
+        <Icon
+          {...props}
+          path={
+            <>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </>
+          }
+        />
+      );
+
+      // --- Component: ToolCallCard ---
+      function ToolCallCard({ toolEvent, roundIndex }) {
+        const [isExpanded, setIsExpanded] = useState(true);
+        const toolName = toolEvent.tool || toolEvent.name || "unknown_tool";
+        const args = toolEvent.args || {};
+        const result = toolEvent.result;
+        const hasError = Boolean(
+          toolEvent.error ||
+          (result && typeof result === "object" && result.error),
+        );
+        const isClarify =
+          toolName === "clarify" || (result && result.awaiting_user);
+
+        return (
+          <div
+            className={`my-3 rounded-xl border transition-all duration-200 overflow-hidden shadow-sm ${
+              hasError
+                ? "border-rose-500/40 bg-rose-950/20"
+                : isClarify
+                  ? "border-amber-500/40 bg-amber-950/20"
+                  : "border-slate-700/60 bg-slate-800/40"
+            }`}
+          >
+            <div
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center justify-between px-3.5 py-2.5 bg-slate-850/60 hover:bg-slate-800/80 cursor-pointer select-none transition-colors border-b border-slate-700/40"
+            >
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <div
+                  className={`p-1.5 rounded-lg ${
+                    hasError
+                      ? "bg-rose-500/20 text-rose-400"
+                      : isClarify
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-indigo-500/20 text-indigo-400"
+                  }`}
+                >
+                  <Wrench className="w-4 h-4" />
+                </div>
+                <div className="flex items-center space-x-2 truncate">
+                  <span className="font-mono text-xs font-semibold text-indigo-300 bg-indigo-950/60 border border-indigo-800/60 px-2 py-0.5 rounded-md">
+                    {toolName}
+                  </span>
+                  {roundIndex && (
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      [Round {roundIndex}]
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                {hasError ? (
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>Tool Error</span>
+                  </span>
+                ) : isClarify ? (
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                    <Clock className="w-3 h-3" />
+                    <span>Cần xác nhận</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span>Thành công</span>
+                  </span>
+                )}
+                <div className="text-slate-400 hover:text-slate-200">
+                  {isExpanded ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {isExpanded && (
+              <div className="p-3.5 space-y-3 text-xs">
+                <div>
+                  <div className="flex items-center space-x-1.5 text-slate-400 font-medium mb-1">
+                    <Terminal className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Tham số đầu vào (Arguments):</span>
+                  </div>
+                  <pre className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-slate-300 font-mono overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+                    {JSON.stringify(args, null, 2)}
+                  </pre>
+                </div>
+
+                {hasError ? (
+                  <div>
+                    <div className="flex items-center space-x-1.5 text-rose-400 font-medium mb-1">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>Chi tiết lỗi (Tool Failure Evidence):</span>
+                    </div>
+                    <pre className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-200 font-mono overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+                      {JSON.stringify(toolEvent.error || result, null, 2)}
+                    </pre>
+                  </div>
+                ) : result !== undefined ? (
+                  <div>
+                    <div className="flex items-center space-x-1.5 text-emerald-400 font-medium mb-1">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Kết quả công cụ (Tool Output):</span>
+                    </div>
+                    <pre className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-emerald-300/90 font-mono overflow-x-auto max-h-60 overflow-y-auto whitespace-pre-wrap break-all leading-relaxed">
+                      {JSON.stringify(result, null, 2)}
+                    </pre>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // --- Component: ChatMessage ---
+      function ChatMessage({ message }) {
+        const isUser = message.role === "user";
+        const hasError = Boolean(
+          message.error || message.status === "provider_error",
+        );
+        const toolEvents = message.tool_events || [];
+        const rounds = message.rounds || [];
+
+        return (
+          <div
+            className={`py-4 px-4 md:px-6 flex space-x-3.5 transition-colors ${
+              isUser
+                ? "bg-slate-900/40"
+                : "bg-slate-850/60 border-y border-slate-800/40"
+            }`}
+          >
+            <div className="flex-shrink-0 pt-0.5">
+              {isUser ? (
+                <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-semibold shadow-inner">
+                  <User className="w-4 h-4" />
+                </div>
+              ) : (
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold shadow-inner ${
+                    hasError
+                      ? "bg-rose-600/20 border border-rose-500/40 text-rose-300"
+                      : "bg-emerald-600/20 border border-emerald-500/40 text-emerald-300"
+                  }`}
+                >
+                  <Bot className="w-4 h-4" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-xs text-slate-300">
+                  {isUser ? "Người dùng (User)" : "Northstar IT Copilot"}
+                </span>
+                {message.timestamp && (
+                  <span className="text-[11px] text-slate-400">
+                    {message.timestamp}
+                  </span>
+                )}
+                {rounds.length > 1 && !isUser && (
+                  <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700">
+                    <Layers className="w-3 h-3" />
+                    <span>{rounds.length} rounds</span>
+                  </span>
+                )}
+              </div>
+
+              {isUser && (
+                <div className="text-sm text-slate-100 whitespace-pre-wrap leading-relaxed">
+                  {message.content}
+                </div>
+              )}
+
+              {!isUser && (
+                <div className="space-y-3">
+                  {rounds.length > 0 ? (
+                    <div className="space-y-2">
+                      {rounds.map((rnd, rIdx) => (
+                        <div key={rIdx} className="space-y-1.5">
+                          {rnd.tool_results && rnd.tool_results.length > 0
+                            ? rnd.tool_results.map((toolEv, tIdx) => (
+                                <ToolCallCard
+                                  key={`${rIdx}-${tIdx}`}
+                                  toolEvent={toolEv}
+                                  roundIndex={
+                                    rounds.length > 1 ? rnd.round : null
+                                  }
+                                />
+                              ))
+                            : rnd.tool_calls && rnd.tool_calls.length > 0
+                              ? rnd.tool_calls.map((call, tIdx) => (
+                                  <ToolCallCard
+                                    key={`${rIdx}-${tIdx}`}
+                                    toolEvent={{
+                                      tool: call.name,
+                                      args: call.args,
+                                    }}
+                                    roundIndex={
+                                      rounds.length > 1 ? rnd.round : null
+                                    }
+                                  />
+                                ))
+                              : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    toolEvents.length > 0 && (
+                      <div className="space-y-2">
+                        {toolEvents.map((toolEv, idx) => (
+                          <ToolCallCard key={idx} toolEvent={toolEv} />
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {hasError && (
+                    <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-500/40 text-rose-300 text-xs flex items-start space-x-2">
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-400" />
+                      <div className="space-y-1">
+                        <div className="font-semibold text-rose-200">
+                          Sự cố gọi Model / Provider (Logged Evidence):
+                        </div>
+                        <div className="font-mono text-xs opacity-90 break-all">
+                          {message.error}
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-1">
+                          *Lưu ý: Lỗi này được lưu trung thực vào file
+                          Transcript phục vụ chấm điểm Rubric.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {message.content && (
+                    <div className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap pt-1 font-sans">
+                      {message.content}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // --- Component: Header ---
+      function Header({ info, version, provider, isConnected }) {
+        const artifactVersion =
+          info?.artifact_version || `${version}+untracked`;
+        const modelName = info?.default_model || "gemini-2.5-flash";
+
+        return (
+          <header className="h-16 bg-slate-900 border-b border-slate-800 px-4 md:px-6 flex items-center justify-between z-10 select-none shadow-sm flex-shrink-0">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 p-0.5 shadow-md shadow-indigo-500/10">
+                <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-cyan-400" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-base font-bold text-slate-100 tracking-tight">
+                    Northstar IT Helpdesk Copilot
+                  </h1>
+                  <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    vinAI K4-L3B
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 hidden sm:block">
+                  Agentic Tool Calling & Prompt Engineering Lab
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2.5">
+              <div
+                title={`Artifact Version: ${artifactVersion}\nPrompt Hash: ${info?.prompt_hash || "N/A"}\nTools Hash: ${info?.tools_hash || "N/A"}`}
+                className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 font-mono shadow-inner cursor-help hover:border-slate-600 transition-colors"
+              >
+                <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="font-semibold text-indigo-300">
+                  {version.toUpperCase()}
+                </span>
+                <span className="text-slate-400">|</span>
+                <span className="text-[11px] text-slate-400 truncate max-w-[120px] sm:max-w-[180px]">
+                  {artifactVersion}
+                </span>
+              </div>
+
+              <div className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300">
+                <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-medium capitalize text-slate-200">
+                  {provider}
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  ({modelName})
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-1.5 px-2 py-1 rounded-lg bg-slate-800/50 border border-slate-700/40 text-xs">
+                <span
+                  className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" : "bg-rose-400"}`}
+                />
+                <span className="text-[11px] font-medium text-slate-300 hidden md:inline">
+                  {isConnected ? "API Ready" : "Connecting"}
+                </span>
+              </div>
+            </div>
+          </header>
+        );
+      }
+
+      // --- Component: Sidebar ---
+      function Sidebar({
+        version,
+        setVersion,
+        provider,
+        setProvider,
+        historyWindow,
+        setHistoryWindow,
+        samplePrompts = [],
+        onSelectPrompt,
+        onResetChat,
+        onExportTranscript,
+        tools = [],
+        sessionId,
+        isOpen,
+        setIsOpen,
+      }) {
+        const [showTools, setShowTools] = useState(false);
+
+        return (
+          <aside
+            className={`w-80 bg-slate-900 border-r border-slate-800 flex flex-col h-full transition-all duration-300 select-none ${
+              isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+            } fixed md:static inset-y-0 left-0 z-20 shadow-xl md:shadow-none flex-shrink-0`}
+          >
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Sliders className="w-4 h-4 text-indigo-400" />
+                <h2 className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                  Cấu hình & Kịch bản
+                </h2>
+              </div>
+              <button
+                onClick={onResetChat}
+                title="Làm mới hội thoại"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-5 text-xs custom-scrollbar">
+              <div className="space-y-3 p-3 rounded-xl bg-slate-850/80 border border-slate-800">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Phiên bản thử nghiệm (Rubric v0–v3)
+                </div>
+
+                <div className="grid grid-cols-4 gap-1.5">
+                  {["v0", "v1", "v2", "v3"].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setVersion(v)}
+                      className={`py-1.5 rounded-lg font-mono text-xs font-bold transition-all ${
+                        version === v
+                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20 ring-2 ring-indigo-400/50"
+                          : "bg-slate-800 text-slate-400 hover:bg-slate-750 hover:text-slate-200"
+                      }`}
+                    >
+                      {v.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-2 space-y-2">
+                  <label className="block text-slate-400 text-[11px]">
+                    Provider:
+                  </label>
+                  <select
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-750 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-medium"
+                  >
+                    <option value="gemini">Google Gemini (Default)</option>
+                    <option value="openai">OpenAI (GPT-4o / mini)</option>
+                    <option value="openrouter">OpenRouter API</option>
+                    <option value="anthropic">Anthropic Claude</option>
+                  </select>
+                </div>
+
+                <div className="pt-1">
+                  <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                    <span>Context Window:</span>
+                    <span className="font-mono text-indigo-400 font-bold">
+                      {historyWindow} turns
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={historyWindow}
+                    onChange={(e) => setHistoryWindow(Number(e.target.value))}
+                    className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex items-center space-x-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Kịch bản Rehearsal / Demo Mẫu</span>
+                </div>
+                <div className="space-y-1.5">
+                  {samplePrompts.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => onSelectPrompt(item.prompt)}
+                      className="w-full text-left p-2.5 rounded-xl bg-slate-850/60 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 transition-all group"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-slate-200 group-hover:text-indigo-300 transition-colors">
+                          {item.title}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-750">
+                          {item.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                        {item.prompt}
+                      </p>
+                      <div className="mt-1.5 text-[10px] font-mono text-indigo-400/80 flex items-center space-x-1">
+                        <span>Tool:</span>
+                        <span className="underline">{item.expected_tool}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <button
+                  onClick={() => setShowTools(!showTools)}
+                  className="w-full flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wider py-1 hover:text-slate-300"
+                >
+                  <div className="flex items-center space-x-1.5">
+                    <Wrench className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Danh sách công cụ ({tools.length})</span>
+                  </div>
+                  {showTools ? (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  )}
+                </button>
+
+                {showTools && (
+                  <div className="space-y-1.5 pl-1 max-h-52 overflow-y-auto custom-scrollbar">
+                    {tools.map((t, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2 rounded-lg bg-slate-950/60 border border-slate-800/70"
+                      >
+                        <div className="font-mono text-indigo-300 font-semibold text-[11px]">
+                          {t.name}
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-2">
+                          {t.description}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-800 bg-slate-900/90 space-y-2">
+              <button
+                onClick={onExportTranscript}
+                className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-md shadow-indigo-600/20 transition-all"
+              >
+                <Download className="w-4 h-4" />
+                <span>Xuất Transcript (JSON)</span>
+              </button>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono">
+                <span className="truncate max-w-[170px]" title={sessionId}>
+                  ID: {sessionId || "Chưa có phiên"}
+                </span>
+                <span className="text-[10px] text-emerald-400">
+                  Live Logged
+                </span>
+              </div>
+            </div>
+          </aside>
+        );
+      }
+
+      // --- Main App Component ---
+      function App() {
+        const [messages, setMessages] = useState([]);
+        const [input, setInput] = useState("");
+        const [loading, setLoading] = useState(false);
+        const [version, setVersion] = useState("v0");
+        const [provider, setProvider] = useState("gemini");
+        const [historyWindow, setHistoryWindow] = useState(5);
+        const [info, setInfo] = useState(null);
+        const [sessionId, setSessionId] = useState("");
+        const [isConnected, setIsConnected] = useState(false);
+        const [sidebarOpen, setSidebarOpen] = useState(false);
+        const [currentToolState, setCurrentToolState] = useState(null);
+
+        const chatBottomRef = useRef(null);
+        const inputRef = useRef(null);
+
+        const loadInfo = async (ver = version) => {
+          try {
+            const res = await fetch(`/api/info?version=${ver}`);
+            if (res.ok) {
+              const data = await res.json();
+              setInfo(data);
+              setIsConnected(true);
+              if (data.default_provider) {
+                setProvider(data.default_provider);
+              }
+            } else {
+              setIsConnected(false);
+            }
+          } catch (err) {
+            console.error("Failed to load system info:", err);
+            setIsConnected(false);
+          }
+        };
+
+        useEffect(() => {
+          loadInfo(version);
+        }, [version]);
+
+        useEffect(() => {
+          chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, [messages, loading]);
+
+        const handleSendMessage = async (textToSend = input) => {
+          const text = (textToSend || "").trim();
+          if (!text || loading) return;
+
+          setInput("");
+          const userMsg = {
+            role: "user",
+            content: text,
+            timestamp: new Date().toLocaleTimeString(),
+          };
+
+          const newMessages = [...messages, userMsg];
+          setMessages(newMessages);
+          setLoading(true);
+          setCurrentToolState(
+            "Đang phân tích ý định và chuẩn bị gọi công cụ...",
+          );
+
+          try {
+            const historyPayload = messages.map((m) => ({
+              role: m.role,
+              content: m.content || "",
+            }));
+
+            const res = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                session_id: sessionId || undefined,
+                user_message: text,
+                history: historyPayload,
+                version: version,
+                provider: provider,
+                history_window: historyWindow,
+              }),
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.detail || `HTTP Error ${res.status}`);
+            }
+
+            const data = await res.json();
+            if (data.session_id) {
+              setSessionId(data.session_id);
+            }
+
+            const assistantMsg = {
+              role: "assistant",
+              content:
+                data.assistant_text ||
+                (data.tool_events?.length > 0 ? "" : "Đã xử lý xong."),
+              tool_events: data.tool_events || [],
+              rounds: data.rounds || [],
+              status: data.status,
+              error: data.error,
+              timestamp: new Date().toLocaleTimeString(),
+            };
+
+            setMessages([...newMessages, assistantMsg]);
+          } catch (err) {
+            console.error("Chat error:", err);
+            const errorMsg = {
+              role: "assistant",
+              content: `Lỗi kết nối hoặc xử lý: ${err.message}`,
+              status: "provider_error",
+              error: err.message,
+              timestamp: new Date().toLocaleTimeString(),
+            };
+            setMessages([...newMessages, errorMsg]);
+          } finally {
+            setLoading(false);
+            setCurrentToolState(null);
+            setTimeout(() => inputRef.current?.focus(), 100);
+          }
+        };
+
+        const handleResetChat = () => {
+          if (
+            messages.length > 0 &&
+            !window.confirm("Bạn có chắc muốn làm mới hội thoại?")
+          ) {
+            return;
+          }
+          setMessages([]);
+          setSessionId("");
+          loadInfo(version);
+        };
+
+        const handleExportTranscript = () => {
+          const transcriptData = {
+            exported_at: new Date().toISOString(),
+            session_id: sessionId || `web_session_${Date.now()}`,
+            version: version,
+            provider: provider,
+            artifact_version: info?.artifact_version || version,
+            prompt_hash: info?.prompt_hash,
+            tools_hash: info?.tools_hash,
+            turns: messages.map((m, idx) => ({
+              index: idx + 1,
+              role: m.role,
+              content: m.content,
+              tool_events: m.tool_events || [],
+              rounds: m.rounds || [],
+              error: m.error || null,
+              timestamp: m.timestamp,
+            })),
+          };
+
+          const blob = new Blob([JSON.stringify(transcriptData, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `transcript_${version}_${sessionId || Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        return (
+          <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+            <Sidebar
+              version={version}
+              setVersion={setVersion}
+              provider={provider}
+              setProvider={setProvider}
+              historyWindow={historyWindow}
+              setHistoryWindow={setHistoryWindow}
+              samplePrompts={info?.sample_prompts || []}
+              onSelectPrompt={(prompt) => {
+                handleSendMessage(prompt);
+                if (window.innerWidth < 768) setSidebarOpen(false);
+              }}
+              onResetChat={handleResetChat}
+              onExportTranscript={handleExportTranscript}
+              tools={info?.tools || []}
+              sessionId={sessionId}
+              isOpen={sidebarOpen}
+              setIsOpen={setSidebarOpen}
+            />
+
+            <div className="flex-1 flex flex-col min-w-0 h-full relative">
+              <Header
+                info={info}
+                version={version}
+                provider={provider}
+                isConnected={isConnected}
+              />
+
+              <div className="md:hidden flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800">
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="p-1.5 rounded-lg bg-slate-800 text-slate-300"
+                >
+                  {sidebarOpen ? (
+                    <X className="w-5 h-5" />
+                  ) : (
+                    <Menu className="w-5 h-5" />
+                  )}
+                </button>
+                <span className="text-xs font-mono text-indigo-400 font-semibold uppercase">
+                  {version} • {provider}
+                </span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {messages.length === 0 ? (
+                  <div className="max-w-3xl mx-auto py-12 px-4 md:px-8 text-center space-y-6">
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-600/30 to-cyan-500/30 border border-indigo-500/40 flex items-center justify-center shadow-lg shadow-indigo-500/10">
+                      <Sparkles className="w-8 h-8 text-indigo-400" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <h2 className="text-2xl font-bold tracking-tight text-white">
+                        Northstar IT Helpdesk Copilot
+                      </h2>
+                      <p className="text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
+                        Trợ lý IT Agentic với khả năng Tool Calling đa bước,
+                        chẩn đoán thiết bị, tra cứu dịch vụ, xác nhận hành vi và
+                        ghi vết transcript chuẩn Rubric.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-left pt-4 max-w-2xl mx-auto">
+                      <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5 hover:border-slate-700 transition-colors">
+                        <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                          <Terminal className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs font-semibold text-slate-200">
+                          9 Core IT Tools
+                        </div>
+                        <div className="text-[11px] text-slate-400 leading-relaxed">
+                          Check VPN, tra cứu nhân viên, quét phần cứng, tìm KB,
+                          tạo ticket an toàn.
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5 hover:border-slate-700 transition-colors">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs font-semibold text-slate-200">
+                          Safety & Trust Boundary
+                        </div>
+                        <div className="text-[11px] text-slate-400 leading-relaxed">
+                          Ngăn chặn rò rỉ dữ liệu, không đoán mò ID, yêu cầu xác
+                          nhận trước khi ghi.
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5 hover:border-slate-700 transition-colors">
+                        <div className="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                          <Layers className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs font-semibold text-slate-200">
+                          v0 → v3 Experiment
+                        </div>
+                        <div className="text-[11px] text-slate-400 leading-relaxed">
+                          Theo dõi vết tool calls, arguments và kết quả để chứng
+                          minh cải thiện qua từng version.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 space-y-2.5">
+                      <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        Bắt đầu nhanh với các câu hỏi mẫu:
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-2 max-w-xl mx-auto">
+                        {(info?.sample_prompts || []).slice(0, 4).map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => handleSendMessage(p.prompt)}
+                            className="px-3 py-1.5 rounded-lg bg-slate-850 hover:bg-slate-800 border border-slate-750 hover:border-indigo-500/50 text-xs text-slate-300 hover:text-white transition-all text-left"
+                          >
+                            {p.prompt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-800/30">
+                    {messages.map((msg, index) => (
+                      <ChatMessage key={index} message={msg} />
+                    ))}
+                  </div>
+                )}
+
+                {loading && (
+                  <div className="py-4 px-4 md:px-6 bg-slate-850/40 border-y border-slate-800/40 flex items-center space-x-3.5 animate-pulse">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+                      <Terminal className="w-4 h-4 animate-spin" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-indigo-300 flex items-center space-x-2">
+                        <span>{currentToolState || "Agent đang xử lý..."}</span>
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-mono">
+                        Executing model & tool call pipeline...
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={chatBottomRef} />
+              </div>
+
+              <div className="p-3 md:p-4 bg-slate-900 border-t border-slate-800 flex-shrink-0">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="max-w-4xl mx-auto flex items-center space-x-2 bg-slate-950 border border-slate-800 focus-within:border-indigo-500/80 rounded-2xl p-1.5 md:p-2 shadow-lg transition-all"
+                >
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Nhập yêu cầu hỗ trợ IT (ví dụ: 'Kiểm tra VPN', 'Tra cứu máy LT-204', 'Tìm hướng dẫn Outlook')..."
+                    disabled={loading}
+                    className="flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading || !input.trim()}
+                    className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white disabled:text-slate-500 font-medium transition-colors shadow-md shadow-indigo-600/20 disabled:shadow-none flex-shrink-0"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </form>
+                <div className="max-w-4xl mx-auto flex items-center justify-between text-[11px] text-slate-400 px-3 pt-2">
+                  <span>
+                    Enter để gửi • Tool calls & kết quả được hiển thị trực tiếp
+                    và lưu vào transcript
+                  </span>
+                  <span className="font-mono text-indigo-400">
+                    Version: {version}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
